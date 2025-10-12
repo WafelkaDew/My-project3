@@ -1,0 +1,224 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  /* АДАПТИВНЫЙ БАЗОВЫЙ РАЗМЕР ТЕКСТА */
+  font-size: clamp(14px, 1.1vw + 0.2rem, 18px);
+  background: #F0F0F0;
+  display: grid;
+  place-items: center;
+}
+
+/* ФИКСИРОВАННАЯ ОБЛАСТЬ ПРИЛОЖЕНИЯ */
+.wrapper {
+  width: 1000px;
+  height: 932px;
+  background: #FFFFFF;
+  display: grid;
+  grid-template-columns: 1.14fr 2fr;
+  border-radius: 30px;
+  overflow: hidden;        /* содержимое обрезаем, скролл внутри правой колонки */
+  border: 1px solid #D8D9DA;
+}
+
+/* ЛЕВОЕ МЕНЮ */
+.wrapper__menu {
+  background: #FCFBFC;
+  border-right: 1px solid #F0F0F0;
+  display: flex;
+  flex-direction: column;
+  padding-left: 8%;
+  padding-right: 8%;
+}
+
+h1 { font-size: clamp(22px, 2.2vw, 34px); margin: 15% auto; }
+
+.btn-addnewnote {
+  font-weight: 600;
+  width: fit-content;
+  cursor: pointer;
+  margin: 0 auto;
+  color: white;
+  background: #4499FF;
+  border-radius: 10px;
+  border: none;
+  font-size: clamp(12px, 1.1vw, 16px);
+  padding: 10px 22px;
+  margin-top: 3%;
+  white-space: nowrap;
+  transition: transform .06s ease, box-shadow .12s ease;
+}
+.btn-addnewnote:active { transform: translateY(1px); }
+
+h2 {
+  font-weight: 600;
+  margin-top: 19%;
+  font-size: clamp(12px, 1.2vw, 18px);
+  color: #74777B;
+  margin-bottom: 6%;
+}
+
+.tag {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 10px;
+  margin: 6px 0 0 0;
+  font-weight: 500;
+  font-size: clamp(12px, 1.05vw, 16px);
+  cursor: pointer;
+  user-select: none;
+}
+.wrapper__menu h3:hover { background: #F4F4F4; }
+.tag.active { background: #EAF3FF; color: #1764d3; }
+
+/* ПРАВОЕ СОДЕРЖИМОЕ */
+.wrapper__content {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;            
+  overflow: hidden;     
+}
+
+.notes-list {
+  margin-top: 16px;
+  padding-right: 6px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;           
+  -webkit-overflow-scrolling: touch;
+}
+
+.search-box {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.search-input {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 1rem;
+  border: 1px solid #D8D9DA;
+  border-radius: 10px;
+  outline: none;
+}
+.btn-search {
+  padding: 10px 12px;
+  border: 1px solid #D8D9DA;
+  background: #fff;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+
+/* КАРТОЧКА ЗАМЕТКИ */
+.note {
+  /* фон убран */
+  background: transparent;
+  border: 1px solid #E7E7E7;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer; /* редактирование по клику */
+position: relative;
+}
+.note__tag {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 0.85rem;
+  line-height: 1;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: #EAF3FF;
+  color: #1764d3;
+  pointer-events: none;
+}
+.note:hover { outline: 2px solid #EAF3FF; }
+
+.note__title { font-weight: 700; font-size: clamp(14px, 1.1rem, 20px); }
+.note__content { line-height: 1.45; }
+.note__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* дата слева, тег справа */
+  gap: 8px;
+  margin-top: 4px;
+}
+.note__meta { font-size: 0.85rem; color: #6b7280; }
+.note-tags { font-size: 0.85rem; color: #3b82f6; }
+
+/* Кнопки действий */
+.note__actions {
+  display: flex;
+  justify-content: flex-end; /* уводим кнопку вправо */
+}
+
+.btn {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #D8D9DA;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.btn-primary { background: #4499FF; color: #fff; border-color: #4499FF; }
+.btn-danger { background: #ff5f5f; color: #fff; border-color: #ff5f5f; }
+.btn-secondary { background: #f3f4f6; }
+
+/* Компактная кнопка удаления */
+.btn-delete {
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  border-radius: 8px;
+}
+
+/* Пустой список */
+.empty {
+  text-align: center;
+  color: #9CA3AF;
+  padding: 32px 8px;
+  font-size: 0.95rem;
+}
+
+/* МОДАЛКА */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  place-items: center;
+  z-index: 50;
+}
+.modal.show { display: grid; }
+.modal__backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.35); }
+.modal__dialog {
+  position: relative;
+  background: #fff;
+  border-radius: 16px;
+  width: min(620px, 92vw);
+  padding: 16px;
+  border: 1px solid #D8D9DA;
+  box-shadow: 0 10px 30px rgba(0,0,0,.15);
+}
+.modal__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.modal__title { font-size: clamp(16px, 1.2rem, 22px); font-weight: 700; }
+.modal__close { background: transparent; border: none; font-size: 26px; cursor: pointer; line-height: 1; }
+
+.modal__body { display: flex; flex-direction: column; gap: 12px; }
+.form__label { display: flex; flex-direction: column; gap: 6px; font-size: 1rem; }
+.form__input, .form__textarea, .form__select {
+  border: 1px solid #D8D9DA; border-radius: 10px; padding: 10px 12px; font-size: 1rem; outline: none;
+}
+.form__textarea { resize: vertical; }
+
+.modal__footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+
+/* Небольшой адаптив для очень узких экранов: просто уменьшаем базовый размер */
+@media (max-width: 700px) {
+  html { font-size: clamp(12px, 3.5vw, 16px); }
+}
