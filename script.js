@@ -1,241 +1,221 @@
-// ======= Константы и хелперы =======
-const LS_KEY = 'notes_app_v1';
+'use strict';
 
-const $ = (sel, root = document) => root.querySelector(sel);
-const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+// ======= ПЕРЕМЕННЫЕ И НАСТРОЙКИ =======
+const STORAGE_KEY = 'my_notes';
 
-function uid() {
-  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+// Все элементы страницы
+const notesList = document.querySelector('.notes-list');
+const addButton = document.querySelector('.btn-addnewnote');
+const searchInput = document.querySelector('.search-input');
+const searchButton = document.querySelector('.btn-search');
+const tagButtons = document.querySelectorAll('.tag');
+
+// Элементы модального окна
+const modal = document.querySelector('#noteModal');
+const modalTitle = document.querySelector('.modal__title');
+const noteForm = document.querySelector('#noteForm');
+const titleInput = document.querySelector('input[name="title"]');
+const contentInput = document.querySelector('textarea[name="content"]');
+const tagSelect = document.querySelector('select[name="tag"]');
+
+// Состояние приложения
+let allNotes = [];
+let currentTag = 'Все';
+let searchText = '';
+
+// ======= РАБОТА С ХРАНИЛИЩЕМ =======
+function loadNotesFromStorage() {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+        console.log('Ошибка загрузки:', error);
+        return [];
+    }
 }
 
-function loadNotes() {
-  try {
-    return JSON.parse(localStorage.getItem(LS_KEY)) || [];
-  } catch {
-    return [];
-  }
+function saveNotesToStorage(notes) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
 }
 
-function saveNotes(notes) {
-  localStorage.setItem(LS_KEY, JSON.stringify(notes));
+// ======= ОСНОВНЫЕ ФУНКЦИИ =======
+function showNotes() {
+    // Фильтруем заметки
+    let filteredNotes = [...allNotes];
+    
+    // Фильтр по тегу
+    if (currentTag !== 'Все') {
+        filteredNotes = filteredNotes.filter(note => note.tag === currentTag);
+    }
+    
+    // Фильтр по поиску
+    if (searchText.trim()) {
+        const query = searchText.toLowerCase();
+        filteredNotes = filteredNotes.filter(note => 
+            note.title.toLowerCase().includes(query) || 
+            note.content.toLowerCase().includes(query)
+        );
+    }
+    
+    // Сортируем по дате (новые сверху)
+    filteredNotes.sort((a, b) => b.updatedAt - a.updatedAt);
+    
+    // Очищаем список
+    notesList.innerHTML = '';
+    
+    // Если нет заметок
+    if (filteredNotes.length === 0) {
+        notesList.innerHTML = '<div class="empty">Заметок не найдено</div>';
+        return;
+    }
+    
+    // Показываем заметки
+    filteredNotes.forEach(note => {
+        const noteElement = document.createElement('div');
+        noteElement.className = 'note';
+        noteElement.setAttribute('data-id', note.id);
+        
+        noteElement.innerHTML = `
+            <div class="note__tag">${note.tag}</div>
+            <div class="note__title">${note.title}</div>
+            <div class="note__content">${note.content.replace(/\n/g, '<br>')}</div>
+            <div class="note__footer">
+                <div class="note__meta">${formatDate(note.createdAt)}</div>
+            </div>
+            <div class="note__actions">
+                <button class="btn btn-danger" onclick="deleteNote('${note.id}')">Удалить</button>
+            </div>
+        `;
+        
+        notesList.appendChild(noteElement);
+    });
 }
 
-function formatDate(ts) {
-  const d = new Date(ts);
-  return d.toLocaleString('ru-RU', {
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit'
-  });
+function formatDate(timestamp) {
+    const date = new Date(timestamp);
+    return date.toLocaleString('ru-RU');
 }
 
-// ======= Состояние =======
-let notes = loadNotes();
-let activeTag = 'Все';
-let searchQuery = '';
-
-// ======= Элементы =======
-const notesList = $('.notes-list');
-const btnAdd = $('.btn-addnewnote');
-const searchInput = $('.search-input');
-const btnSearch = $('.btn-search');
-const tagButtons = $$('.tag');
-
-// Модалка
-const modal = $('#noteModal');
-const modalTitle = $('.modal__title', modal);
-const form = $('#noteForm');
-const hiddenId = $('input[name="id"]', form);
-const inputTitle = $('input[name="title"]', form);
-const inputContent = $('textarea[name="content"]', form);
-const selectTag = $('select[name="tag"]', form);
-
-// ======= Рендер =======
-function renderNotes() {
-  // фильтрация
-  let filtered = notes.slice().sort((a,b) => b.updatedAt - a.updatedAt);
-  if (activeTag !== 'Все') filtered = filtered.filter(n => n.tag === activeTag);
-  if (searchQuery.trim()) {
-    const q = searchQuery.trim().toLowerCase();
-    filtered = filtered.filter(n =>
-      n.title.toLowerCase().includes(q) ||
-      n.content.toLowerCase().includes(q)
-    );
-  }
-
-  // рендер
-  notesList.innerHTML = '';
-  if (!filtered.length) {
-    const div = document.createElement('div');
-    div.className = 'empty';
-    div.textContent = 'Здесь пока пусто. Создайте заметку!';
-    notesList.appendChild(div);
-    return;
-  }
-
-  for (const n of filtered) {
-    const el = document.createElement('div');
-    el.className = 'note';
-    el.dataset.id = n.id;  // нужно для клика по карточке
-    el.innerHTML = `
-  <div class="note__tag">${escapeHtml(n.tag)}</div>
-
-  <div class="note__title">${escapeHtml(n.title)}</div>
-  <div class="note__content">${escapeHtml(n.content).replace(/\n/g, '<br/>')}</div>
-
-  <div class="note__footer">
-    <div class="note__meta">${formatDate(n.createdAt)}</div>
-  </div>
-
-  <div class="note__actions">
-    <button class="btn btn-danger btn-delete" data-action="delete" data-id="${n.id}" title="Удалить">Удалить</button>
-  </div>
-    `;
-    notesList.appendChild(el);
-  }
-}
-
-function escapeHtml(str) {
-  return String(str)
-    .replaceAll('&','&amp;')
-    .replaceAll('<','&lt;')
-    .replaceAll('>','&gt;')
-    .replaceAll('"','&quot;')
-    .replaceAll("'",'&#39;');
-}
-
-// Модалка: открытие/закрытие 
-function openModal(mode = 'create', data = null) {
-  modal.classList.add('show');
-  modal.setAttribute('aria-hidden', 'false');
-
-  if (mode === 'create') {
-    modalTitle.textContent = 'Новая заметка';
-    hiddenId.value = '';
-    inputTitle.value = '';
-    inputContent.value = '';
-    //
-    selectTag.value = ['Идеи','Личное','Работа','Список покупок'].includes(activeTag) ? activeTag : 'Идеи';
-  } else {
-    modalTitle.textContent = 'Редактирование';
-    hiddenId.value = data.id;
-    inputTitle.value = data.title;
-    inputContent.value = data.content;
-    selectTag.value = data.tag;
-  }
-
-  setTimeout(() => inputTitle.focus(), 0);
+function openModal(mode = 'create', noteData = null) {
+    modal.style.display = 'block';
+    
+    if (mode === 'create') {
+        modalTitle.textContent = 'Новая заметка';
+        titleInput.value = '';
+        contentInput.value = '';
+        tagSelect.value = 'Идеи';
+    } else {
+        modalTitle.textContent = 'Редактировать заметку';
+        titleInput.value = noteData.title;
+        contentInput.value = noteData.content;
+        tagSelect.value = noteData.tag;
+        // Сохраняем ID для редактирования
+        titleInput.setAttribute('data-edit-id', noteData.id);
+    }
 }
 
 function closeModal() {
-  modal.classList.remove('show');
-  modal.setAttribute('aria-hidden', 'true');
+    modal.style.display = 'none';
+    titleInput.removeAttribute('data-edit-id');
 }
 
-// 
-btnAdd.addEventListener('click', () => openModal('create'));
-
-modal.addEventListener('click', (e) => {
-  if (e.target.matches('[data-close-modal]')) closeModal();
-  if (e.target === modal) closeModal();
-});
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && modal.classList.contains('show')) closeModal();
-});
-
-form.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const id = hiddenId.value;
-  const title = inputTitle.value.trim();
-  const content = inputContent.value.trim();
-  const tag = selectTag.value;
-
-  if (!title || !content) return;
-
-  if (id) {
-    const idx = notes.findIndex(n => n.id === id);
-    if (idx !== -1) {
-      notes[idx] = { ...notes[idx], title, content, tag, updatedAt: Date.now() };
+function createNote() {
+    const title = titleInput.value.trim();
+    const content = contentInput.value.trim();
+    const tag = tagSelect.value;
+    
+    if (!title || !content) {
+        alert('Заполните заголовок и текст!');
+        return;
     }
-  } else {
-    const now = Date.now();
-    notes.push({
-      id: uid(),
-      title, content, tag,
-      createdAt: now,
-      updatedAt: now
-    });
-  }
-
-  saveNotes(notes);
-  renderNotes();
-  closeModal();
-});
-
-
-notesList.addEventListener('click', (e) => {
-  const delBtn = e.target.closest('button[data-action="delete"]');
-  if (delBtn) {
-    const id = delBtn.dataset.id;
-    const note = notes.find(n => n.id === id);
-    if (!note) return;
-    if (!confirm(`Удалить заметку «${note.title}»?`)) return;
-    notes = notes.filter(n => n.id !== id);
-    saveNotes(notes);
-    renderNotes();
-    return;
-  }
-
- 
-  const card = e.target.closest('.note');
-  if (card) {
-    const id = card.dataset.id;
-    const note = notes.find(n => n.id === id);
-    if (note) openModal('edit', note);
-  }
-});
-
-// Фильтрация по тегу
-tagButtons.forEach(tagEl => {
-  tagEl.addEventListener('click', () => {
-    tagButtons.forEach(t => t.classList.remove('active'));
-    tagEl.classList.add('active');
-    activeTag = tagEl.dataset.tag;
-    renderNotes();
-  });
-});
-
-
-btnSearch.addEventListener('click', () => {
-  searchQuery = searchInput.value;
-  renderNotes();
-});
-
-let searchTimer;
-searchInput.addEventListener('input', () => {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => {
-    searchQuery = searchInput.value;
-    renderNotes();
-  }, 180);
-});
-searchInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    searchQuery = searchInput.value;
-    renderNotes();
-  }
-});
-
-//  Первый рендер 
-renderNotes();
-
-//Демо-контент для первого запуска 
-if (notes.length === 0) {
-  const now = Date.now();
-  notes.push(
-    { id: uid(), title: 'Добро пожаловать!', content: 'Это ваша первая заметка. Кликните по карточке, чтобы отредактировать, или создайте новую.', tag: 'Личное', createdAt: now, updatedAt: now },
-    { id: uid(), title: 'Идея проекта', content: 'Сделать SPA блокнот с фильтрами по тегам и быстрым поиском.', tag: 'Идеи', createdAt: now, updatedAt: now }
-  );
-  saveNotes(notes);
-  renderNotes();
+    
+    const newNote = {
+        id: Date.now().toString(),
+        title: title,
+        content: content,
+        tag: tag,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+    };
+    
+    allNotes.push(newNote);
+    saveNotesToStorage(allNotes);
+    showNotes();
+    closeModal();
 }
+
+function editNote() {
+    const noteId = titleInput.getAttribute('data-edit-id');
+    const title = titleInput.value.trim();
+    const content = contentInput.value.trim();
+    const tag = tagSelect.value;
+    
+    if (!title || !content) {
+        alert('Заполните заголовок и текст!');
+        return;
+    }
+    
+    const noteIndex = allNotes.findIndex(note => note.id === noteId);
+    if (noteIndex !== -1) {
+        allNotes[noteIndex].title = title;
+        allNotes[noteIndex].content = content;
+        allNotes[noteIndex].tag = tag;
+        allNotes[noteIndex].updatedAt = Date.now();
+        
+        saveNotesToStorage(allNotes);
+        showNotes();
+        closeModal();
+    }
+}
+
+function deleteNote(noteId) {
+    if (!confirm('Удалить эту заметку?')) return;
+    
+    allNotes = allNotes.filter(note => note.id !== noteId);
+    saveNotesToStorage(allNotes);
+    showNotes();
+}
+
+
+// Добавление заметок
+addButton.addEventListener('click', () => openModal('create'));
+
+// Закрытие модального окна
+modal.addEventListener('click', (event) => {
+    if (event.target === modal || event.target.classList.contains('close')) {
+        closeModal();
+    }
+});
+
+// Форма заметки
+noteForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    
+    if (titleInput.hasAttribute('data-edit-id')) {
+        editNote();
+    } else {
+        createNote();
+    }
+});
+
+// Клик по заметке для редактирования
+notesList.addEventListener('click', (event) => {
+    const noteElement = event.target.closest('.note');
+    if (noteElement && !event.target.classList.contains('btn-danger')) {
+        const noteId = noteElement.getAttribute('data-id');
+        const note = allNotes.find(n => n.id === noteId);
+        if (note) {
+            openModal('edit', note);
+        }
+    }
+});
+
+
+function initApp() {
+    allNotes = loadNotesFromStorage();
+    
+    showNotes();
+}
+
+// Запускаем приложение
+initApp();
