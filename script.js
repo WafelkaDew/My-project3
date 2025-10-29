@@ -103,7 +103,7 @@ function escapeHtml(str) {
     .replaceAll("'",'&#39;');
 }
 
-// ======= Модалка: открытие/закрытие =======
+// Модалка: открытие/закрытие 
 function openModal(mode = 'create', data = null) {
   modal.classList.add('show');
   modal.setAttribute('aria-hidden', 'false');
@@ -113,7 +113,7 @@ function openModal(mode = 'create', data = null) {
     hiddenId.value = '';
     inputTitle.value = '';
     inputContent.value = '';
-    // предустановим тег из активного фильтра, если это не "Все"
+    //
     selectTag.value = ['Идеи','Личное','Работа','Список покупок'].includes(activeTag) ? activeTag : 'Идеи';
   } else {
     modalTitle.textContent = 'Редактирование';
@@ -131,7 +131,7 @@ function closeModal() {
   modal.setAttribute('aria-hidden', 'true');
 }
 
-// ======= Обработчики =======
+// 
 btnAdd.addEventListener('click', () => openModal('create'));
 
 modal.addEventListener('click', (e) => {
@@ -171,7 +171,7 @@ form.addEventListener('submit', (e) => {
   closeModal();
 });
 
-// Делегирование кликов на списке
+
 notesList.addEventListener('click', (e) => {
   const delBtn = e.target.closest('button[data-action="delete"]');
   if (delBtn) {
@@ -185,7 +185,7 @@ notesList.addEventListener('click', (e) => {
     return;
   }
 
-  // Если кликнули НЕ по кнопке удаления — открываем редактирование по карточке
+ 
   const card = e.target.closest('.note');
   if (card) {
     const id = card.dataset.id;
@@ -204,7 +204,7 @@ tagButtons.forEach(tagEl => {
   });
 });
 
-// Поиск (кнопка + "ввод" + лайв-обновление с дебаунсом)
+
 btnSearch.addEventListener('click', () => {
   searchQuery = searchInput.value;
   renderNotes();
@@ -226,10 +226,10 @@ searchInput.addEventListener('keydown', (e) => {
   }
 });
 
-// ======= Первый рендер =======
+//  Первый рендер 
 renderNotes();
 
-// ======= Демо-контент для первого запуска =======
+//Демо-контент для первого запуска 
 if (notes.length === 0) {
   const now = Date.now();
   notes.push(

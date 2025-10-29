@@ -4,14 +4,12 @@ html, body { height: 100%; }
 
 body {
   font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  /* АДАПТИВНЫЙ БАЗОВЫЙ РАЗМЕР ТЕКСТА */
   font-size: clamp(14px, 1.1vw + 0.2rem, 18px);
   background: #F0F0F0;
   display: grid;
   place-items: center;
 }
 
-/* ФИКСИРОВАННАЯ ОБЛАСТЬ ПРИЛОЖЕНИЯ */
 .wrapper {
   width: 1000px;
   height: 932px;
@@ -19,11 +17,11 @@ body {
   display: grid;
   grid-template-columns: 1.14fr 2fr;
   border-radius: 30px;
-  overflow: hidden;        /* содержимое обрезаем, скролл внутри правой колонки */
+  overflow: hidden; 
   border: 1px solid #D8D9DA;
 }
 
-/* ЛЕВОЕ МЕНЮ */
+
 .wrapper__menu {
   background: #FCFBFC;
   border-right: 1px solid #F0F0F0;
@@ -73,7 +71,7 @@ h2 {
 .wrapper__menu h3:hover { background: #F4F4F4; }
 .tag.active { background: #EAF3FF; color: #1764d3; }
 
-/* ПРАВОЕ СОДЕРЖИМОЕ */
+/* Сами по себе заметки */
 .wrapper__content {
   padding: 20px 24px;
   display: flex;
@@ -113,9 +111,8 @@ h2 {
 }
 
 
-/* КАРТОЧКА ЗАМЕТКИ */
+/* Заметка */
 .note {
-  /* фон убран */
   background: transparent;
   border: 1px solid #E7E7E7;
   border-radius: 12px;
@@ -124,7 +121,7 @@ h2 {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  cursor: pointer; /* редактирование по клику */
+  cursor: pointer; 
 position: relative;
 }
 .note__tag {
@@ -146,7 +143,7 @@ position: relative;
 .note__footer {
   display: flex;
   align-items: center;
-  justify-content: space-between; /* дата слева, тег справа */
+  justify-content: space-between; 
   gap: 8px;
   margin-top: 4px;
 }
@@ -156,7 +153,7 @@ position: relative;
 /* Кнопки действий */
 .note__actions {
   display: flex;
-  justify-content: flex-end; /* уводим кнопку вправо */
+  justify-content: flex-end; 
 }
 
 .btn {
@@ -171,14 +168,12 @@ position: relative;
 .btn-danger { background: #ff5f5f; color: #fff; border-color: #ff5f5f; }
 .btn-secondary { background: #f3f4f6; }
 
-/* Компактная кнопка удаления */
 .btn-delete {
   padding: 6px 10px;
   font-size: 0.8rem;
   border-radius: 8px;
 }
 
-/* Пустой список */
 .empty {
   text-align: center;
   color: #9CA3AF;
@@ -218,7 +213,3 @@ position: relative;
 
 .modal__footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
 
-/* Небольшой адаптив для очень узких экранов: просто уменьшаем базовый размер */
-@media (max-width: 700px) {
-  html { font-size: clamp(12px, 3.5vw, 16px); }
-}
