@@ -181,7 +181,7 @@ position: relative;
   font-size: 0.95rem;
 }
 
-/* МОДАЛКА */
+/* Модальное окно */
 .modal {
   position: fixed;
   inset: 0;

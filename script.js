@@ -265,6 +265,7 @@ function initApp() {
         saveNotesToStorage();
     }
     
+
     setupEventListeners();
     
     rendererNotes();
