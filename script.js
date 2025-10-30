@@ -17,11 +17,11 @@ const tagSelect = document.querySelector('select[name="tag"]');
 
 // Состояние приложения
 let allNotes = [];
-let currentTag = 'Все';
+let activeTag = 'Все';
 let searchText = '';
 
 // Загрузка хранилища заметокк
-function loadNotesFromStorage() {
+function loadNotes() {
     try {
         const saved = localStorage.getItem(STORAGE_KEY);
         return saved ? JSON.parse(saved) : [];
@@ -31,7 +31,7 @@ function loadNotesFromStorage() {
     }
 }
 
-function saveNotesToStorage(notes) {
+function saveNotes(notes) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
 }
 
@@ -41,7 +41,7 @@ function showNotes() {
     let filteredNotes = [...allNotes];
     
     // Фильтр по тегу
-    if (currentTag !== 'Все') {
+    if (activeTag !== 'Все') {
         filteredNotes = filteredNotes.filter(note => note.tag === currentTag);
     }
     
@@ -88,6 +88,7 @@ function showNotes() {
     });
 }
 
+// Обозначаем дату заметки
 function formatDate(timestamp) {
     const date = new Date(timestamp);
     return date.toLocaleString('ru-RU');
@@ -136,7 +137,7 @@ function createNote() {
     };
     
     allNotes.push(newNote);
-    saveNotesToStorage(allNotes);
+    saveNotes(allNotes);
     showNotes();
     closeModal();
 }
@@ -159,7 +160,7 @@ function editNote() {
         allNotes[noteIndex].tag = tag;
         allNotes[noteIndex].updatedAt = Date.now();
         
-        saveNotesToStorage(allNotes);
+        saveNotes(allNotes);
         showNotes();
         closeModal();
     }
@@ -169,7 +170,7 @@ function deleteNote(noteId) {
     if (!confirm('Удалить эту заметку?')) return;
     
     allNotes = allNotes.filter(note => note.id !== noteId);
-    saveNotesToStorage(allNotes);
+    saveNotes(allNotes);
     showNotes();
 }
 
@@ -222,11 +223,10 @@ searchInput.addEventListener('keypress', (event) => {
 
 
 function initApp() {
-    allNotes = loadNotesFromStorage();
+    allNotes = loadNotes();
     
     showNotes();
 }
 
-
-// Запускаем приложение
+showNotes();
 initApp();
