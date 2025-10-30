@@ -1,6 +1,3 @@
-'use strict';
-
-// ======= ПЕРЕМЕННЫЕ И НАСТРОЙКИ =======
 const STORAGE_KEY = 'my_notes';
 
 // Все элементы страницы
@@ -23,7 +20,7 @@ let allNotes = [];
 let currentTag = 'Все';
 let searchText = '';
 
-// ======= РАБОТА С ХРАНИЛИЩЕМ =======
+// Загрузка хранилища заметокк
 function loadNotesFromStorage() {
     try {
         const saved = localStorage.getItem(STORAGE_KEY);
@@ -38,7 +35,7 @@ function saveNotesToStorage(notes) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
 }
 
-// ======= ОСНОВНЫЕ ФУНКЦИИ =======
+// Функции работы с заметками
 function showNotes() {
     // Фильтруем заметки
     let filteredNotes = [...allNotes];
@@ -210,12 +207,26 @@ notesList.addEventListener('click', (event) => {
     }
 });
 
+searchButton.addEventListenerEventListener('click', () => {
+    searchText = searchInput.value;
+    showNotes();
+})
+
+searchInput.addEventListener('keypress', (event) => {
+    if (event.key === 'Enter'){
+        searchText = searchInput.value;
+        showNotes();
+    }
+})
+
+
 
 function initApp() {
     allNotes = loadNotesFromStorage();
     
     showNotes();
 }
+
 
 // Запускаем приложение
 initApp();
